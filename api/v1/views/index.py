@@ -5,15 +5,14 @@ from flask import Flask, Blueprint, jsonify
 from models import storage
 
 
-hbnbText = {
-    "amenities": "Amenity",
-    "cities": "City",
-    "places": "Place",
-    "reviews": "Review",
-    "states": "State",
-    "users": "User"
+hbnb_models = {
+	"Amenity": "amenities",
+	"City": "cities",
+	"Place": "places",
+	"Review": "reviews",
+	"State": "states",
+	"User": "users"
 }
-
 
 @app_views.route('/status', strict_slashes=False)
 def hbnbStatus():
@@ -25,9 +24,6 @@ def hbnbStatus():
 def hbnbStats():
     """Create an endpoint that retrieves the number of each objects by type"""
     return_dict = {}
-    for key, value in hbnbText.items():
+    for key, value in hbnb_models.items():
         return_dict[key] = storage.count(value)
     return jsonify(return_dict)
-
-if __name__ == "__main__":
-    pass
