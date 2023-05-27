@@ -5,17 +5,13 @@ from flask import Flask, Blueprint, jsonify
 from models import storage
 
 
-if __name__ == "__main__":
-    pass
-
-
 hbnb_models = {
-	"Amenity": "amenities",
-	"City": "cities",
-	"Place": "places",
-	"Review": "reviews",
-	"State": "states",
-	"User": "users"
+    "amenities": "Amenity",
+    "cities": "City",
+    "places": "Place",
+    "reviews": "Review",
+    "states": "State",
+    "users": "User"
 }
 
 @app_views.route('/status', strict_slashes=False)
