@@ -5,6 +5,10 @@ from flask import Flask, Blueprint, jsonify
 from models import storage
 
 
+if __name__ == "__main__":
+    pass
+
+
 hbnb_models = {
 	"Amenity": "amenities",
 	"City": "cities",
