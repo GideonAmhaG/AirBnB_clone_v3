@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""module for states"""
+"""module for states api"""
 from api.v1.views import app_views
 from flask import abort, jsonify, make_response, request
 from models import storage
