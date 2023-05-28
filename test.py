@@ -12,7 +12,6 @@ from models.review import Review
 from models.state import State
 from models.user import User
 import shlex  # for splitting the line along spaces except in double quotes
-import re
 
 classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
            "Place": Place, "Review": Review, "State": State, "User": User}
@@ -34,58 +33,41 @@ class HBNBCommand(cmd.Cmd):
         """Quit command to exit the program"""
         return True
 
+    def _key_value_parser(self, args):
+        """creates a dictionary from a list of strings"""
+        new_dict = {}
+        for arg in args:
+            if "=" in arg:
+                kvp = arg.split('=', 1)
+                key = kvp[0]
+                value = kvp[1]
+                if value[0] == value[-1] == '"':
+                    value = shlex.split(value)[0].replace('_', ' ')
+                else:
+                    try:
+                        value = int(value)
+                    except:
+                        try:
+                            value = float(value)
+                        except:
+                            continue
+                new_dict[key] = value
+        return new_dict
+
     def do_create(self, arg):
-        """Creates a new instance of a class
-
-        Command syntax: create <Class name> <param 1> <param 2> <param 3>...
-
-        Param syntax: <key name>=<value>
-
-        Value syntax:
-            string: "<value>"
-                Internal double quotes should be escaped. Spaces can be
-                represented using `_` and will be replaced by spaces.
-            float: <unit>.<decimal>
-                Unit or decimal may be missing.
-            int: <number>
-                Decimal integer.
-
-        Any parameter that does not fit this pattern will be ignored.
-        """
-        args = shlex.split(arg)
+        """Creates a new instance of a class"""
+        args = arg.split()
         if len(args) == 0:
             print("** class name missing **")
             return False
-        if args[0] not in classes:
+        if args[0] in classes:
+            new_dict = self._key_value_parser(args[1:])
+            instance = classes[args[0]](**new_dict)
+        else:
             print("** class doesn't exist **")
             return False
-        else:
-            kwargs = {}
-            for arg in args[1:]:
-                match = re.fullmatch('(?P<key>[a-zA-Z_]\w*)=(?:'
-                                     '(?P<int>\d+)|'
-                                     '(?P<float>\d*\.\d*)|'
-                                     '(?P<string>.*))',
-                                     arg)
-                match = match.groupdict()
-                if match['string']:
-                    kwargs[match['key']] = match['string'].replace('_', ' ')
-                elif match['float']:
-                    if match['float'] == '.':
-                        continue
-                    kwargs[match['key']] = float(match['float'])
-                else:
-                    kwargs[match['key']] = int(match['int'])
-
-        instance = classes[args[0]](**kwargs)
-        try:
-            instance.save()
-        except Exception as e:
-            print("** could not save [{}] object **".format(args[0]))
-            print(e)
-            return False
-        else:
-            print(instance.id)
+        print(instance.id)
+        instance.save()
 
     def do_show(self, arg):
         """Prints an instance as a string based on the class and id"""
@@ -114,7 +96,7 @@ class HBNBCommand(cmd.Cmd):
             if len(args) > 1:
                 key = args[0] + "." + args[1]
                 if key in models.storage.all():
-                    models.storage.all()[key].delete()
+                    models.storage.all().pop(key)
                     models.storage.save()
                 else:
                     print("** no instance found **")
@@ -128,16 +110,17 @@ class HBNBCommand(cmd.Cmd):
         args = shlex.split(arg)
         obj_list = []
         if len(args) == 0:
-            for value in models.storage.all().values():
-                obj_list.append(str(value))
+            obj_dict = models.storage.all()
         elif args[0] in classes:
-            for key in models.storage.all():
-                if key.startswith(args[0]):
-                    obj_list.append(str(models.storage.all()[key]))
+            obj_dict = models.storage.all(classes[args[0]])
         else:
             print("** class doesn't exist **")
             return False
-        print(obj_list)
+        for key in obj_dict:
+            obj_list.append(str(obj_dict[key]))
+        print("[", end="")
+        print(", ".join(obj_list), end="")
+        print("]")
 
     def do_update(self, arg):
         """Update an instance based on the class name, id, attribute & value"""
